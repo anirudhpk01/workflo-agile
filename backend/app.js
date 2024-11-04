@@ -395,6 +395,65 @@ app.get('/api/teamdet', authMiddleWare, async (req, res) => {
 
 
 
+app.get('/api/scrum', authMiddleWare, async (req, res) => {
+  const usermail = req.user.usermail;
+  if (!usermail) {
+      return res.status(404).json({ message: "User not found" });
+  }
+
+  try {
+      const client = await pool.connect();
+
+      // Step 1: Get the user ID
+      const userResult = await client.query('SELECT u_id FROM users WHERE u_mail = $1', [usermail]);
+      if (userResult.rows.length === 0) {
+          return res.status(404).json({ message: 'User not found.' });
+      }
+      const userId = userResult.rows[0].u_id;
+      console.log("User ID:", userId);
+
+      // Step 2: Check if user has the "scrum" role
+      const roleResult = await client.query('SELECT 1 FROM user_roles WHERE u_id = $1 AND role = $2', [userId, 'scrum']);
+      if (roleResult.rows.length === 0) {
+          client.release();
+          return res.status(403).json({ message: "Access denied: User does not have scrum privileges." });
+      }
+
+      // Step 3: Get the team associated with this user
+      const teamResult = await client.query(
+          `SELECT team.team_id AS t
+           FROM team
+           JOIN tasks ON team.team_id = tasks.team_id
+           WHERE team.sc_uid = $1 AND tasks.u_id = $2`,
+          [userId, userId]
+      );
+
+      if (teamResult.rows.length === 0) {
+          return res.status(404).json({ message: 'Team not found for this user.' });
+      }
+      console.log("Team Query Result:", teamResult.rows);
+      const teamId = teamResult.rows[0].t;
+
+      // Step 4: Fetch all tasks for this team, including u_name from users
+      const taskResult = await client.query(
+          `SELECT tasks.task_id, tasks.task_name, tasks.task_type, users.u_name AS u_name
+           FROM tasks
+           JOIN users ON tasks.u_id = users.u_id
+           WHERE tasks.team_id = $1`,
+          [teamId]
+      );
+
+      console.log("Tasks Query Result:", taskResult.rows);
+      client.release();
+
+      // Respond with the task information
+      return res.json({ tasks: taskResult.rows });
+
+  } catch (error) {
+      console.error('Error fetching team tasks:', error);
+      return res.status(500).json({ message: 'Server error' });
+  }
+});
 
 
 app.listen(port, () => {

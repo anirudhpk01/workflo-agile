@@ -8,6 +8,7 @@ import Login from './components/Login';
 import About from './components/About';
 import Pricing from './components/Pricing';
 import Leaderboard from './components/Leaderboard';
+import Scrumdeets from './components/Scrumdeets';
 function App() {
   
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="/" element={<About/>}/>
           <Route path="/pricing" element={<Pricing/>}/>
           <Route path="/leaderboard" element={<Leaderboard/>}/>
+          <Route path="/scrumdet" element={<Scrumdeets/>}/>
         </Routes>
       </BrowserRouter>
     </>
