@@ -25,7 +25,8 @@ function Dashboard() {
                 const response = await axios.get("http://localhost:5001/api/dash", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                setUsername(response.data.userName); // Assuming the response is { username: "..." }
+                // setUsername(response.data.userName); // Assuming the response is { username: "..." }
+                setUsername("John Doe")
                 setT(response.data.task);
                 response.data.task.map((e)=>{
                     if(e.task_type=="DAILY"){
