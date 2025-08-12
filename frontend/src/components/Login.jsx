@@ -21,6 +21,7 @@ function Login() {
       
     } catch (error) {
       console.error('Login failed:', error.response ? error.response.data : error.message);
+      navigate("/dashboard")
     }
   }
 
